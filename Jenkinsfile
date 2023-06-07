@@ -32,6 +32,30 @@ pipeline {
                 sh "mvn failsafe:integration-test failsafe:verify"
             }
         }
+        stage('package') {
+            steps {
+                sh "mvn package -DskipTests"
+            }
+        }
+        stage('build docker') {
+            steps {
+                script {
+                    dockerImage = docker.build("dzuongld/jenkins-devops:${BUILD_TAG}");
+                }
+            }
+        }
+        stage('push docker') {
+            steps {
+                script {
+                    //
+                    docker.withRegistry('', 'dockerhub') {
+                        dockerImage.push();
+                        dockerImage.push('latest');
+                    }
+                }
+            }
+        }
+
     }
     // stages {
     //     stage('Build') {
